@@ -2,18 +2,16 @@ package az.forgotpasswordapp.service;
 
 import az.forgotpasswordapp.entity.User;
 import az.forgotpasswordapp.enums.UserRole;
-import az.forgotpasswordapp.exception.UserNotFoundException;
 import az.forgotpasswordapp.exception.error.ErrorMessage;
 import az.forgotpasswordapp.mapper.UserMapper;
 import az.forgotpasswordapp.repo.UserRepository;
+import az.forgotpasswordapp.request.ForgotPasswordRequest;
 import az.forgotpasswordapp.request.LoginRequest;
 import az.forgotpasswordapp.request.UserRequest;
-import az.forgotpasswordapp.response.UserResponse;
 import az.forgotpasswordapp.seccurity.JwtUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
     public ResponseEntity<?> signUp(UserRequest userSignUpRequest) {
         if (validationSignUp(userSignUpRequest)) {
@@ -57,11 +56,17 @@ public class UserService {
         return ErrorMessage.BAD_CREDENTIALS;
     }
 
+    public ResponseEntity<String> forgotPassword(ForgotPasswordRequest forgotPasswordRequest) throws MessagingException {
+        Optional<User> user = userRepository.findByEmailEqualsIgnoreCase(forgotPasswordRequest.getEmail());
+        if (user.isPresent()) {
+            emailService.forgetMail(user.get().getEmail(), ErrorMessage.BY_YOUR_APP, user.get().getPassword());
+            return ResponseEntity.status(OK).body(ErrorMessage.CHECK_EMAIL);
+        } else
+            return ResponseEntity.status(BAD_REQUEST).body(ErrorMessage.USER_NOT_FOUND);
+    }
+
     private boolean validationSignUp(UserRequest userRequest) {
         return userRequest.getName() != null && userRequest.getEmail() != null
                 && userRequest.getUsername() != null && userRequest.getPassword() != null;
     }
-
-
-
 }
