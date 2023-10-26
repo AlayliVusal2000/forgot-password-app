@@ -4,10 +4,12 @@ import az.forgotpasswordapp.entity.User;
 import az.forgotpasswordapp.exception.UserNotFoundException;
 import az.forgotpasswordapp.exception.error.ErrorMessage;
 import az.forgotpasswordapp.repo.UserRepository;
+import az.forgotpasswordapp.request.ForgotPasswordRequest;
 import az.forgotpasswordapp.request.LoginRequest;
 import az.forgotpasswordapp.request.UserRequest;
 import az.forgotpasswordapp.response.AuthenticationResponse;
 import az.forgotpasswordapp.service.UserService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,5 +53,9 @@ public class UserController {
         }
     }
 
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) throws MessagingException {
+        return userService.forgotPassword(forgotPasswordRequest);
+    }
 
 }
